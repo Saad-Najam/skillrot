@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import ChatPanel, { type Citation } from '@/components/ChatPanel';
 import FileUploadZone from '@/components/FileUploadZone';
 import Footer from '@/components/Footer';
@@ -9,6 +9,7 @@ import LectureCardPanel from '@/components/lecture/LectureCardPanel';
 import LoadingState from '@/components/LoadingState';
 import SkillPill from '@/components/SkillPill';
 import SourceViewer from '@/components/SourceViewer';
+import { DEMO_MATERIAL_TEXT, DEMO_MATERIAL_TITLE } from '@/lib/demo-material';
 import type { LearningCard } from '@/lib/lecture-types';
 import { isVideoFilename, isVideoMimeType, parseYouTubeUrl } from '@/lib/notes-types';
 import VideoNotesPanel from '@/components/notes/VideoNotesPanel';
@@ -87,6 +88,7 @@ export default function UploadPage() {
   const [youtubeUrl, setYoutubeUrl] = useState('');
   const [notices, setNotices] = useState<string[]>([]);
   const [openCitation, setOpenCitation] = useState<Citation | null>(null);
+  const startedRef = useRef(false);
 
   const runPipeline = useCallback(async (uploadRequest: () => Promise<Response>) => {
     setStage('processing');
@@ -265,6 +267,28 @@ export default function UploadPage() {
     );
   }, [runPipeline, pastedText]);
 
+  const handleDemo = useCallback(() => {
+    runPipeline(() =>
+      fetch('/api/upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          text: DEMO_MATERIAL_TEXT,
+          user_id: getUserId(),
+          title: DEMO_MATERIAL_TITLE,
+        }),
+      }),
+    );
+  }, [runPipeline]);
+
+  // ?demo=1 lets the landing page hand off straight into a running demo.
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get('demo') !== '1') return;
+    if (startedRef.current) return;
+    startedRef.current = true;
+    handleDemo();
+  }, [handleDemo]);
+
   return (
     <div className="min-h-screen">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -276,6 +300,19 @@ export default function UploadPage() {
               </h1>
               <p className="text-[#c7c4d7]">
                 A lecture PDF, a PowerPoint deck, or just paste your notes. We handle the rest.
+              </p>
+            </div>
+
+            <div className="glass-panel rounded-2xl p-5 mb-6 text-center">
+              <button
+                onClick={handleDemo}
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 min-h-11 rounded-xl bg-gradient-to-r from-[#8083ff] to-[#4cd7f6] text-[#0f131d] font-semibold hover:opacity-90 transition-opacity"
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>play_circle</span>
+                Try the live demo
+              </button>
+              <p className="text-xs text-[#908fa0] mt-3">
+                Runs a sample lecture on {DEMO_MATERIAL_TITLE} through the real pipeline — nothing to upload.
               </p>
             </div>
 

@@ -74,6 +74,13 @@ export default function Home() {
             Upload your first lecture
           </Link>
           <Link
+            href="/upload?demo=1"
+            className="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl glass-panel text-[#dfe2f1] font-medium glow-hover transition-all"
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>play_circle</span>
+            Try the live demo
+          </Link>
+          <Link
             href="/roadmap"
             className="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl glass-panel text-[#dfe2f1] font-medium glow-hover transition-all"
           >
